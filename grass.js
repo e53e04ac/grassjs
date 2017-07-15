@@ -364,7 +364,7 @@ function executeProgram(program) {
 function main() {
 	var filename = process.argv[2];
 	if (filename == null) {
-		console.log('Usage: node glass filename');
+		console.log('Usage: node grass filename');
 		process.exit();
 	}
 	var program = loadProgram(filename);
