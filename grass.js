@@ -6,7 +6,13 @@
 
 'use strict';
 
+// standard modules
+
 var fs = require('fs');
+
+var os = require('os');
+
+// grass modules
 
 function wApp(m, n) {
 	return {
@@ -193,8 +199,10 @@ function wSucc() {
 	};
 }
 
-function loadProgram(filename) {
-	var inputList = fs.readFileSync(filename, 'utf8');
+// main
+
+function parse(source) {
+	var inputList = source;
 	inputList = inputList.replace(/Ｗ/g, 'W');
 	inputList = inputList.replace(/ｖ/g, 'v');
 	inputList = inputList.replace(/ｗ/g, 'w');
@@ -333,7 +341,7 @@ function loadProgram(filename) {
 					throw new Error();
 				case 'v':
 					throw new Error();
-				case 'w':
+				case 'bw':
 					throw new Error();
 			}
 		}
@@ -341,13 +349,18 @@ function loadProgram(filename) {
 	return program;
 }
 
-function executeProgram(program) {
+function execute(program) {
 	var C0 = program;
 	var E0 = wE([
-		wOut(function (n) { process.stdout.write(Buffer.from([n])); }),
+		wOut(function (n) {
+			process.stdout.write(Buffer.from([n]));
+		}),
 		wSucc(),
 		ww('w'.charCodeAt(0)),
-		wIn(function () { return process.stdin.read(1); })
+		wIn(function () {
+			var n = process.stdin.read(1);
+			return (n == null ? -1 : n[0]);
+		})
 	]);
 	var D0 = wD(wCE(wC(wApp(1, 1)), wE()));
 	var CED = wCED(C0, E0, D0);
@@ -361,14 +374,24 @@ function executeProgram(program) {
 	}
 }
 
-function main() {
-	var filename = process.argv[2];
+function main(argv) {
+	var filename = argv[0];
 	if (filename == null) {
-		console.log('Usage: node grass filename');
-		process.exit();
+		process.stderr.write('Usage: node grass filename' + os.EOL);
+		return 0;
 	}
-	var program = loadProgram(filename);
-	executeProgram(program);
+	var source;
+	if (fs.existsSync(filename)) {
+		source = fs.readFileSync(filename, 'utf8');
+	} else if (fs.existsSync(filename + '.grass')) {
+		source = fs.readFileSync(filename + '.grass', 'utf8');
+	} else {
+		process.stderr.write('File Does Not Exists: ' + filename + os.EOL);
+		return 0;
+	}
+	var program = parse(source);
+	execute(program);
+	return 0;
 }
 
-main();
+process.exit(main(process.argv.slice(2)));
