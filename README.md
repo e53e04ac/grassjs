@@ -10,14 +10,26 @@
 
 ## いるもの
 
-- [git](https://git-scm.com/)
+- [Node.js (v15)](https://nodejs.org/en/)
 
-- [Node.js](https://nodejs.org/en/)
+## インストールする
+
+~~~~~ sh
+npm install e53e04ac/grassjs
+~~~~~
 
 ## つかってみる
 
-1. `git clone https://github.com/e53e04ac/grassjs.git`
+~~~~~ js
+const fs = require('fs');
 
-2. `cd grassjs`
+const { Grass } = require('grassjs');
 
-3. `node grass helloworld.grass`
+async function main() {
+    const string = await fs.promises.readFile('helloworld.grass', 'utf8');
+    const code = Grass.parse(string);
+    await Grass.run(code);
+}
+
+main();
+~~~~~
