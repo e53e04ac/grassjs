@@ -172,7 +172,7 @@ const Grass = {
         );
     },
     w(n) {
-        return {
+        return ({
             toString() {
                 return `"${String.fromCharCode(n)}"`;
             },
@@ -188,10 +188,10 @@ const Grass = {
             n() {
                 return n;
             }
-        };
+        });
     },
     Out(write) {
-        return {
+        return ({
             toString() {
                 return 'Out';
             },
@@ -208,10 +208,10 @@ const Grass = {
             n() {
                 throw new Error();
             }
-        };
+        });
     },
     In(read) {
-        return {
+        return ({
             toString() {
                 return 'In';
             },
@@ -228,10 +228,10 @@ const Grass = {
             n() {
                 throw new Error();
             }
-        };
+        });
     },
     Succ() {
-        return {
+        return ({
             toString() {
                 return 'Succ';
             },
@@ -247,61 +247,109 @@ const Grass = {
             n() {
                 throw new Error();
             }
-        };
+        });
     },
     parse(string) {
 
         /** @typedef Code @type {import('../types').Code} */
-        /** @typedef Input @type {{ character: string; length: number; }}  */
         /** @typedef State @type {0 | 1 | 2 | 3 | 4 | 5 | 6 | 7} */
-        /** @typedef Context @type {{ code: Code; state: State; abs_n: number; abs_C: Code; app_m: number; app_n: number; }}  */
-        /** @typedef Table @type {Record<number, Record<string, { (context: any, input: Input): any; }>>} */
+        /** @typedef Context @type {{
+         *    code: Code;
+         *    state: State;
+         *    abs_n: null | number;
+         *    abs_C: null | Code;
+         *    app_m: null | number;
+         *    reject(message?: string): never;
+         *    next(context: Partial<Context>): Context;
+         *    absEnd(): Context;
+         *    absBegin(abs_n: number): Context;
+         *    appBegin(app_m: number): Context;
+         *    appEnd(app_n: number): Context;
+         *    absAppEnd(app_n: number): Context;
+         *  }} */
+        /** @typedef Table @type {Record<number, Record<string, { (context: Context, length: number): Context; }>>} */
 
         /** @type {Table} */
-        const table = {};
-        table[0] = {};
-        table[0]['.'] = (context, input) => { throw new Error(); };
-        table[0]['W'] = (context, input) => { throw new Error(); };
-        table[0]['v'] = (context, input) => { throw new Error(); };
-        table[0]['w'] = (context, input) => { return ({ ...context, state: 1, abs_n: input.length, abs_C: Grass.C() }); };
-        table[1] = {};
-        table[1]['.'] = (context, input) => { return ({ ...context, state: 7 }); };
-        table[1]['W'] = (context, input) => { return ({ ...context, state: 2, app_m: input.length }); };
-        table[1]['v'] = (context, input) => { context.code.push(Grass.Abs(context.abs_n, context.abs_C)); return ({ ...context, state: 4, abs_n: null, abs_C: null }); };
-        table[1]['w'] = (context, input) => { throw new Error(); };
-        table[2] = {};
-        table[2]['.'] = (context, input) => { throw new Error(); };
-        table[2]['W'] = (context, input) => { throw new Error(); };
-        table[2]['v'] = (context, input) => { throw new Error(); };
-        table[2]['w'] = (context, input) => { context.abs_C.push(Grass.App(context.app_m, input.length)); return ({ ...context, state: 3, app_m: null, app_n: null }); };
-        table[3] = {};
-        table[3]['.'] = (context, input) => { context.code.push(Grass.Abs(context.abs_n, context.abs_C)); return ({ ...context, state: 7, abs_n: null, abs_C: null }); };
-        table[3]['W'] = (context, input) => { return ({ ...context, state: 2, app_m: input.length }); };
-        table[3]['v'] = (context, input) => { context.code.push(Grass.Abs(context.abs_n, context.abs_C)); return ({ ...context, state: 4, abs_n: null, abs_C: null }); };
-        table[3]['w'] = (context, input) => { throw new Error(); };
-        table[4] = {};
-        table[4]['.'] = (context, input) => { throw new Error(); };
-        table[4]['W'] = (context, input) => { return ({ ...context, state: 5, app_m: input.length }); };
-        table[4]['v'] = (context, input) => { throw new Error(); };
-        table[4]['w'] = (context, input) => { return ({ ...context, state: 1, abs_n: input.length, abs_C: Grass.C() }); };
-        table[5] = {};
-        table[5]['.'] = (context, input) => { throw new Error(); };
-        table[5]['W'] = (context, input) => { throw new Error(); };
-        table[5]['v'] = (context, input) => { throw new Error(); };
-        table[5]['w'] = (context, input) => { context.code.push(Grass.App(context.app_m, input.length)); return ({ ...context, state: 6, app_m: null, app_n: null }); };
-        table[6] = {};
-        table[6]['.'] = (context, input) => { return ({ ...context, state: 7 }); };
-        table[6]['W'] = (context, input) => { return ({ ...context, state: 5, app_m: input.length }); };
-        table[6]['v'] = (context, input) => { return ({ ...context, state: 4 }); };
-        table[6]['w'] = (context, input) => { return ({ ...context, state: 1, abs_n: input.length, abs_C: Grass.C() }); };
-        table[7] = {};
-        table[7]['.'] = (context, input) => { return ({ ...context, state: 7 }); };
-        table[7]['W'] = (context, input) => { throw new Error(); };
-        table[7]['v'] = (context, input) => { throw new Error(); };
-        table[7]['w'] = (context, input) => { throw new Error(); };
+        const table = {
+            0: {
+                '.': (y, x) => y.reject(),
+                'W': (y, x) => y.reject(),
+                'v': (y, x) => y.reject(),
+                'w': (y, x) => y.absBegin(x).next({ state: 1 })
+            },
+            1: {
+                '.': (y, x) => y.next({ state: 7 }),
+                'W': (y, x) => y.appBegin(x).next({ state: 2 }),
+                'v': (y, x) => y.absEnd().next({ state: 4 }),
+                'w': (y, x) => y.reject()
+            },
+            2: {
+                '.': (y, x) => y.reject(),
+                'W': (y, x) => y.reject(),
+                'v': (y, x) => y.reject(),
+                'w': (y, x) => y.absAppEnd(x).next({ state: 3 })
+            },
+            3: {
+                '.': (y, x) => y.absEnd().next({ state: 7 }),
+                'W': (y, x) => y.appBegin(x).next({ state: 2 }),
+                'v': (y, x) => y.absEnd().next({ state: 4 }),
+                'w': (y, x) => y.reject()
+            },
+            4: {
+                '.': (y, x) => y.reject(),
+                'W': (y, x) => y.appBegin(x).next({ state: 5 }),
+                'v': (y, x) => y.reject(),
+                'w': (y, x) => y.absBegin(x).next({ state: 1 })
+            },
+            5: {
+                '.': (y, x) => y.reject(),
+                'W': (y, x) => y.reject(),
+                'v': (y, x) => y.reject(),
+                'w': (y, x) => y.appEnd(x).next({ state: 6 })
+            },
+            6: {
+                '.': (y, x) => y.next({ state: 7 }),
+                'W': (y, x) => y.appBegin(x).next({ state: 5 }),
+                'v': (y, x) => y.next({ state: 4 }),
+                'w': (y, x) => y.absBegin(x).next({ state: 1 })
+            },
+            7: {
+                '.': (y, x) => y.next({ state: 7 }),
+                'W': (y, x) => y.reject(),
+                'v': (y, x) => y.reject(),
+                'w': (y, x) => y.reject()
+            }
+        };
 
         /** @type {Context} */
-        const context = { code: Grass.C(), state: 0, abs_n: null, abs_C: null, app_m: null, app_n: null };
+        const context = {
+            code: Grass.C(),
+            state: 0,
+            abs_n: null,
+            abs_C: null,
+            app_m: null,
+            reject(message) {
+                throw new Error(message);
+            },
+            next(context) {
+                return { ...this, ...context };
+            },
+            absBegin(abs_n) {
+                return this.next({ abs_n, abs_C: Grass.C() });
+            },
+            absEnd() {
+                return (this.abs_n == null || this.abs_C == null) ? this.reject() : (this.code.push(Grass.Abs(this.abs_n, this.abs_C)), this.next({ abs_n: null, abs_C: null }));
+            },
+            appBegin(app_m) {
+                return this.next({ app_m });
+            },
+            appEnd(app_n) {
+                return (this.app_m == null) ? this.reject() : (this.code.push(Grass.App(this.app_m, app_n)), this.next({ app_m: null }));
+            },
+            absAppEnd(app_n) {
+                return (this.abs_C == null || this.app_m == null) ? this.reject() : (this.abs_C.push(Grass.App(this.app_m, app_n)), this.next({ app_m: null }));
+            },
+        };
 
         return string
             .replace(/Ｗ/g, 'W')
@@ -313,7 +361,7 @@ const Grass = {
             .filter((x) => { return x != ''; })
             .map((x) => { return { character: x[0], length: x.length }; })
             .concat({ character: '.', length: 0 })
-            .reduce((context, input) => table[context.state][input.character](context, input), context)
+            .reduce((context, input) => table[context.state][input.character](context, input.length), context)
             .code;
 
     },
