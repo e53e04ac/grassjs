@@ -41,7 +41,7 @@ describe('index.js', async () => {
         await Grass.f(Grass.C(), Grass.E()).apply(Grass.MC(Grass.C(), Grass.E(), Grass.D()), Grass.f(Grass.C(), Grass.E()));
         Grass.f(Grass.C(), Grass.E()).C();
         Grass.f(Grass.C(), Grass.E()).E();
-        try { Grass.f(Grass.C(), Grass.E()).n() } catch (error) { };
+        try { Grass.f(Grass.C(), Grass.E()).n(); } catch (error) { };
 
         Grass.MC(Grass.C(), Grass.E(), Grass.D()).toString();
         Grass.MC(Grass.C(), Grass.E(), Grass.D()).pushCE(Grass.f(Grass.C(), Grass.E()));
