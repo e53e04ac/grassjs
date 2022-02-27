@@ -12,7 +12,7 @@ const chai = require('chai');
 
 describe('index.js', async () => {
 
-    const { Grass } = require('../');
+    const { Grass } = require('..');
 
     it('coverage', async () => {
 

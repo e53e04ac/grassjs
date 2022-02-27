@@ -10,7 +10,7 @@
 
 ## いるもの
 
-- [Node.js (v15)](https://nodejs.org/en/)
+- [Node.js (v17.6.0)](https://nodejs.org/en/)
 
 ## インストールする
 
@@ -25,11 +25,9 @@ const fs = require('fs');
 
 const { Grass } = require('grassjs');
 
-async function main() {
+(async function main() {
     const string = await fs.promises.readFile('helloworld.grass', 'utf8');
     const code = Grass.parse(string);
     await Grass.run(code);
-}
-
-main();
+})();
 ~~~~~
