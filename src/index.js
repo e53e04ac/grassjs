@@ -6,7 +6,9 @@
 
 const { Grass } = (() => {
 
-    /** @typedef Grass @type {import('..').Grass.Grass} */
+    /** @typedef {import('..').Grass.Grass} Grass */
+    /** @typedef {import('..').Grass.ParserStateContext} ParserStateContext */
+    /** @typedef {import('..').Grass.ParserStateTransitionTable} ParserStateTransitionTable */
 
     const stream = require('stream');
 
@@ -253,7 +255,7 @@ const { Grass } = (() => {
         },
         parse(string) {
 
-            /** @type {import('..').Grass.ParserStateContext} */
+            /** @type {ParserStateContext} */
             const context = ({
                 code: Grass.C(),
                 state: 0,
@@ -310,7 +312,7 @@ const { Grass } = (() => {
                 },
             });
 
-            /** @type {import('..').Grass.ParserStateTransitionTable} */
+            /** @type {ParserStateTransitionTable} */
             const table = ({
                 0: {
                     '.': (y, x) => y.reject(),
